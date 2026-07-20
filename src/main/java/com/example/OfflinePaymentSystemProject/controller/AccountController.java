@@ -1,7 +1,10 @@
 package com.example.OfflinePaymentSystemProject.controller;
 
+import com.example.OfflinePaymentSystemProject.dto.CreateAccountRequestDTO;
+import com.example.OfflinePaymentSystemProject.dto.CreateAccountResponseDTO;
 import com.example.OfflinePaymentSystemProject.entity.Account;
 import com.example.OfflinePaymentSystemProject.service.AccountService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,8 +23,8 @@ public class AccountController {
     }
 
     @PostMapping
-    public ResponseEntity<Account> createAccount(
-            @RequestBody Account account) {
+    public ResponseEntity<CreateAccountResponseDTO> createAccount(
+           @Valid @RequestBody CreateAccountRequestDTO account) {
 
         return ResponseEntity.ok(
                 accountService.createAccount(account)

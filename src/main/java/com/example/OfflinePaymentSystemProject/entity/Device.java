@@ -13,6 +13,10 @@ public class Device {
     private String ownerUpiId;
     private String online;
 
+    public Device() {
+    }
+
+
     public Device(Long id, String deviceId, String ownerUpiId, String online) {
         this.id = id;
         this.deviceId = deviceId;

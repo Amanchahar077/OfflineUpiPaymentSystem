@@ -9,19 +9,33 @@ public class Device {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(unique = true)
     private String deviceId;
+
+    @Column(nullable = false)
     private String ownerUpiId;
-    private String online;
+
+    private boolean online;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String publicKey;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String privateKey;
 
     public Device() {
     }
 
-
-    public Device(Long id, String deviceId, String ownerUpiId, String online) {
+    public Device(Long id, String deviceId, String ownerUpiId, boolean online, String publicKey, String privateKey) {
         this.id = id;
         this.deviceId = deviceId;
         this.ownerUpiId = ownerUpiId;
         this.online = online;
+        this.publicKey = publicKey;
+        this.privateKey = privateKey;
     }
 
     public Long getId() {
@@ -48,11 +62,27 @@ public class Device {
         this.ownerUpiId = ownerUpiId;
     }
 
-    public String getOnline() {
+    public boolean isOnline() {
         return online;
     }
 
-    public void setOnline(String online) {
+    public void setOnline(boolean online) {
         this.online = online;
+    }
+
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
+    }
+
+    public String getPrivateKey() {
+        return privateKey;
+    }
+
+    public void setPrivateKey(String privateKey) {
+        this.privateKey = privateKey;
     }
 }

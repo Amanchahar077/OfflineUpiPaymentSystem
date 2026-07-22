@@ -6,21 +6,21 @@ public class MeshPacket {
 
     private String packetId;
 
-    private String senderUpiId;
+    private String encryptedPayload;
 
-    private String receiverUpiId;
+    private String encryptedAESKey;
 
-    private Double amount;
+    private String digitalSignature;
 
     private List<String> route;
 
     private int currentHop;
 
-    public MeshPacket(String packetId, String senderUpiId, String receiverUpiId, Double amount, List<String> route, int currentHop) {
+    public MeshPacket(String packetId, String encryptedPayload, String encryptedAESKey, String digitalSignature, List<String> route, int currentHop) {
         this.packetId = packetId;
-        this.senderUpiId = senderUpiId;
-        this.receiverUpiId = receiverUpiId;
-        this.amount = amount;
+        this.encryptedPayload = encryptedPayload;
+        this.encryptedAESKey = encryptedAESKey;
+        this.digitalSignature = digitalSignature;
         this.route = route;
         this.currentHop = currentHop;
     }
@@ -35,28 +35,28 @@ public class MeshPacket {
         this.packetId = packetId;
     }
 
-    public String getSenderUpiId() {
-        return senderUpiId;
+    public String getEncryptedPayload() {
+        return encryptedPayload;
     }
 
-    public void setSenderUpiId(String senderUpiId) {
-        this.senderUpiId = senderUpiId;
+    public void setEncryptedPayload(String encryptedPayload) {
+        this.encryptedPayload = encryptedPayload;
     }
 
-    public String getReceiverUpiId() {
-        return receiverUpiId;
+    public String getEncryptedAESKey() {
+        return encryptedAESKey;
     }
 
-    public void setReceiverUpiId(String receiverUpiId) {
-        this.receiverUpiId = receiverUpiId;
+    public void setEncryptedAESKey(String encryptedAESKey) {
+        this.encryptedAESKey = encryptedAESKey;
     }
 
-    public Double getAmount() {
-        return amount;
+    public String getDigitalSignature() {
+        return digitalSignature;
     }
 
-    public void setAmount(Double amount) {
-        this.amount = amount;
+    public void setDigitalSignature(String digitalSignature) {
+        this.digitalSignature = digitalSignature;
     }
 
     public List<String> getRoute() {

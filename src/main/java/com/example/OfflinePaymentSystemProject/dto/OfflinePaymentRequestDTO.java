@@ -6,10 +6,6 @@ public class OfflinePaymentRequestDTO {
 
     private String receiverDeviceId;
 
-    private String senderUpiId;
-
-    private String receiverUpiId;
-
     private Double amount;
 
     public OfflinePaymentRequestDTO() {
@@ -29,22 +25,6 @@ public class OfflinePaymentRequestDTO {
 
     public void setReceiverDeviceId(String receiverDeviceId) {
         this.receiverDeviceId = receiverDeviceId;
-    }
-
-    public String getSenderUpiId() {
-        return senderUpiId;
-    }
-
-    public void setSenderUpiId(String senderUpiId) {
-        this.senderUpiId = senderUpiId;
-    }
-
-    public String getReceiverUpiId() {
-        return receiverUpiId;
-    }
-
-    public void setReceiverUpiId(String receiverUpiId) {
-        this.receiverUpiId = receiverUpiId;
     }
 
     public Double getAmount() {

@@ -3,10 +3,12 @@ package com.example.OfflinePaymentSystemProject.service;
 import com.example.OfflinePaymentSystemProject.dto.CreatePaymentRequestDTO;
 import com.example.OfflinePaymentSystemProject.dto.CreatePaymentResponseDTO;
 import com.example.OfflinePaymentSystemProject.dto.OfflinePaymentRequestDTO;
+import com.example.OfflinePaymentSystemProject.entity.Device;
 import com.example.OfflinePaymentSystemProject.offline.mesh.MeshNetwork;
 import com.example.OfflinePaymentSystemProject.offline.mesh.MeshNode;
 import com.example.OfflinePaymentSystemProject.offline.packet.MeshPacket;
 import com.example.OfflinePaymentSystemProject.offline.routing.RoutingService;
+import com.example.OfflinePaymentSystemProject.repository.DeviceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,14 +21,17 @@ public class OfflinePaymentService {
     private final RoutingService routingService;
     private final MeshNetwork meshNetwork;
     private final PaymentService paymentService;
+    private final DeviceRepository deviceRepository;
 
-    @Autowired
-    public OfflinePaymentService(RoutingService routingService, MeshNetwork meshNetwork,
-            PaymentService paymentService) {
+    public OfflinePaymentService(RoutingService routingService, MeshNetwork meshNetwork, PaymentService paymentService, DeviceRepository deviceRepository) {
         this.routingService = routingService;
         this.meshNetwork = meshNetwork;
         this.paymentService = paymentService;
+        this.deviceRepository = deviceRepository;
     }
+
+    @Autowired
+
 
     public MeshPacket createPacket(String senderDevice,
             String receiverDevice,
@@ -79,14 +84,24 @@ public class OfflinePaymentService {
 
     public void processOfflinePayment(OfflinePaymentRequestDTO request) {
 
-        MeshPacket packet = createPacket(
-                request.getSenderDeviceId(),
-                request.getReceiverDeviceId(),
-                request.getSenderUpiId(),
-                request.getReceiverUpiId(),
-                request.getAmount());
+        Device sender = deviceRepository
+                .findByDeviceId(request.getSenderDeviceId())
+                .orElseThrow(() ->
+                        new RuntimeException("Sender device not found"));
 
-        forwardPacket(packet);
+        Device receiver = deviceRepository
+                .findByDeviceId(request.getReceiverDeviceId())
+                .orElseThrow(() ->
+                        new RuntimeException("Receiver device not found"));
+
+        MeshPacket packet = createPacket(
+                sender.getDeviceId(),
+                receiver.getDeviceId(),
+                sender.getOwnerUpiId(),
+                receiver.getOwnerUpiId(),
+                request.getAmount()
+        );
+
     }
 
     private CreatePaymentRequestDTO buildPaymentRequest(MeshPacket packet) {

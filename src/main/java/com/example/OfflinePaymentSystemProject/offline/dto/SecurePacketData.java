@@ -1,4 +1,4 @@
-package com.example.upi.offline.dto;
+package com.example.OfflinePaymentSystemProject.offline.dto;
 
 public class SecurePacketData {
 

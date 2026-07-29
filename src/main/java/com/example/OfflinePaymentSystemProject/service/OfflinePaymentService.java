@@ -11,6 +11,8 @@ import com.example.OfflinePaymentSystemProject.offline.routing.RoutingService;
 import com.example.OfflinePaymentSystemProject.repository.DeviceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.example.OfflinePaymentSystemProject.offline.crypto.CryptoService;
+import com.example.OfflinePaymentSystemProject.offline.dto.SecurePacketData;
 
 import java.util.List;
 import java.util.UUID;
@@ -22,15 +24,17 @@ public class OfflinePaymentService {
     private final MeshNetwork meshNetwork;
     private final PaymentService paymentService;
     private final DeviceRepository deviceRepository;
+    private final CryptoService cryptoService;
 
-    public OfflinePaymentService(RoutingService routingService, MeshNetwork meshNetwork, PaymentService paymentService, DeviceRepository deviceRepository) {
+    public OfflinePaymentService(RoutingService routingService, MeshNetwork meshNetwork, PaymentService paymentService, DeviceRepository deviceRepository, CryptoService cryptoService) {
         this.routingService = routingService;
         this.meshNetwork = meshNetwork;
         this.paymentService = paymentService;
         this.deviceRepository = deviceRepository;
+        this.cryptoService = cryptoService;
     }
 
-    @Autowired
+    
 
 
     public MeshPacket createPacket(String senderDevice,
@@ -41,12 +45,21 @@ public class OfflinePaymentService {
 
         List<String> route = routingService.findShortestPath(senderDevice, receiverDevice);
 
+        String paymentData = senderUpiId + "," + receiverUpiId + "," + amount;
+
+        SecurePacketData secureData;
+        try {
+            secureData = cryptoService.securePacket(senderDevice, receiverDevice, paymentData);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to secure payment packet", e);
+        }
+
         MeshPacket packet = new MeshPacket();
 
         packet.setPacketId(UUID.randomUUID().toString());
-        packet.setSenderUpiId(senderUpiId);
-        packet.setReceiverUpiId(receiverUpiId);
-        packet.setAmount(amount);
+        packet.setEncryptedPayload(secureData.getEncryptedPayload());
+        packet.setEncryptedAESKey(secureData.getEncryptedAESKey());
+        packet.setDigitalSignature(secureData.getDigitalSignature());
         packet.setRoute(route);
         packet.setCurrentHop(0);
 
@@ -102,15 +115,54 @@ public class OfflinePaymentService {
                 request.getAmount()
         );
 
+        forwardPacket(packet);
     }
 
     private CreatePaymentRequestDTO buildPaymentRequest(MeshPacket packet) {
 
+        List<String> route = packet.getRoute();
+        if (route == null || route.isEmpty()) {
+            throw new RuntimeException("Invalid route in packet");
+        }
+        String senderDevice = route.get(0);
+        String receiverDevice = route.get(route.size() - 1);
+
+        SecurePacketData secureData = new SecurePacketData(
+                packet.getEncryptedPayload(),
+                packet.getEncryptedAESKey(),
+                packet.getDigitalSignature()
+        );
+
+        String decryptedPayload;
+        try {
+            decryptedPayload = cryptoService.decryptPacket(receiverDevice, secureData);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to decrypt packet", e);
+        }
+
+        try {
+            boolean verified = cryptoService.verifySignature(senderDevice, decryptedPayload, packet.getDigitalSignature());
+            if (!verified) {
+                throw new RuntimeException("Digital signature verification failed!");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to verify digital signature", e);
+        }
+
+        String[] parts = decryptedPayload.split(",");
+        if (parts.length < 3) {
+            throw new RuntimeException("Invalid payment data format in decrypted payload");
+        }
+
+        String senderUpiId = parts[0];
+        String receiverUpiId = parts[1];
+        Double amount = Double.parseDouble(parts[2]);
+
         CreatePaymentRequestDTO request = new CreatePaymentRequestDTO();
 
-        request.setSenderUpiId(packet.getSenderUpiId());
-        request.setReceiverUpiId(packet.getReceiverUpiId());
-        request.setAmount(packet.getAmount());
+        request.setSenderUpiId(senderUpiId);
+        request.setReceiverUpiId(receiverUpiId);
+        request.setAmount(amount);
 
         return request;
     }
